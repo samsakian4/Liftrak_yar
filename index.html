@@ -1,0 +1,753 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#f78166">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="لیفتراک">
+<meta name="description" content="سیستم مدیریت زمان و خدمات لیفتراک">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>مدیریت لیفتراک</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --surface2: #1c2230;
+    --border: #30363d;
+    --accent: #f78166;
+    --accent2: #ffa657;
+    --accent3: #3fb950;
+    --accent4: #58a6ff;
+    --warn: #d29922;
+    --danger: #f85149;
+    --text: #e6edf3;
+    --text2: #8b949e;
+    --text3: #6e7681;
+    --radius: 14px;
+    --radius-sm: 8px;
+    --safe-top: env(safe-area-inset-top, 0px);
+    --safe-bot: env(safe-area-inset-bottom, 0px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Vazirmatn', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100dvh;
+    max-width: 480px;
+    margin: 0 auto;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #1a1f2e 0%, #0d1117 100%);
+    border-bottom: 1px solid var(--border);
+    padding: calc(16px + var(--safe-top)) 20px 12px;
+    flex-shrink: 0;
+  }
+  .header-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+  .logo-icon {
+    width: 40px; height: 40px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+  .header-title { font-size: 17px; font-weight: 700; }
+  .header-sub   { font-size: 11px; color: var(--text2); margin-top: 2px; }
+  .header-stats { display: flex; gap: 8px; flex-wrap: wrap; }
+  .stat-pill {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 20px; padding: 5px 12px;
+    font-size: 11px; display: flex; align-items: center; gap: 5px;
+  }
+  .stat-dot { width: 6px; height: 6px; border-radius: 50%; }
+
+  /* INSTALL BANNER */
+  #installBanner {
+    background: rgba(247,129,102,.12);
+    border: 1px solid rgba(247,129,102,.3);
+    border-radius: var(--radius-sm);
+    margin: 8px 16px 0;
+    padding: 10px 14px;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--accent2);
+  }
+  #installBanner button {
+    margin-right: auto; background: var(--accent); border: none;
+    border-radius: 6px; padding: 6px 14px;
+    color: #fff; font-family: 'Vazirmatn', sans-serif;
+    font-size: 12px; font-weight: 700; cursor: pointer;
+  }
+
+  /* NAV */
+  .nav {
+    display: flex; background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .nav-btn {
+    flex: 1; padding: 11px 4px 9px;
+    background: none; border: none; border-bottom: 2px solid transparent;
+    color: var(--text3); font-family: 'Vazirmatn', sans-serif;
+    font-size: 10px; cursor: pointer;
+    display: flex; flex-direction: column; align-items: center; gap: 3px;
+    transition: all .2s;
+  }
+  .nav-btn .nav-icon { font-size: 18px; }
+  .nav-btn.active { color: var(--accent); border-bottom-color: var(--accent); background: rgba(247,129,102,.06); }
+
+  /* SCROLL AREA */
+  .scroll-area { flex: 1; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+  .scroll-area::-webkit-scrollbar { display: none; }
+
+  /* PAGES */
+  .page { display: none; padding: 16px; padding-bottom: calc(88px + var(--safe-bot)); }
+  .page.active { display: block; animation: fadeUp .22s ease; }
+  @keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+
+  /* SECTION TITLE */
+  .sec-title {
+    font-size: 12px; font-weight: 600; color: var(--text2);
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+  }
+  .sec-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  /* CARD */
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:16px; margin-bottom:12px; }
+
+  /* PRIORITY */
+  .priority { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+  .p-critical { background:rgba(248,81,73,.18);  color:var(--danger); border:1px solid rgba(248,81,73,.3); }
+  .p-high     { background:rgba(247,129,102,.15); color:var(--accent); border:1px solid rgba(247,129,102,.3); }
+  .p-medium   { background:rgba(210,153,34,.15);  color:var(--warn);   border:1px solid rgba(210,153,34,.3); }
+  .p-low      { background:rgba(63,185,80,.12);   color:var(--accent3);border:1px solid rgba(63,185,80,.3); }
+
+  /* STATUS */
+  .status-badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+  .s-waiting { background:rgba(88,166,255,.12);  color:var(--accent4); border:1px solid rgba(88,166,255,.3); }
+  .s-active  { background:rgba(63,185,80,.12);   color:var(--accent3); border:1px solid rgba(63,185,80,.3); }
+  .s-done    { background:rgba(110,118,129,.15);  color:var(--text3);   border:1px solid var(--border); }
+
+  /* FORM */
+  .form-group { margin-bottom:13px; }
+  .form-label { font-size:12px; color:var(--text2); margin-bottom:5px; display:block; font-weight:500; }
+  .form-input, .form-select, .form-textarea {
+    width:100%; background:var(--surface2); border:1px solid var(--border);
+    border-radius:var(--radius-sm); padding:11px 12px;
+    color:var(--text); font-family:'Vazirmatn',sans-serif; font-size:14px;
+    transition:border-color .2s; outline:none;
+  }
+  .form-input:focus,.form-select:focus,.form-textarea:focus { border-color:var(--accent); }
+  .form-textarea { resize:none; min-height:76px; }
+  .form-select option { background:var(--surface2); }
+
+  /* BUTTONS */
+  .btn {
+    padding:12px 18px; border-radius:var(--radius-sm); border:none;
+    font-family:'Vazirmatn',sans-serif; font-size:14px; font-weight:600;
+    cursor:pointer; transition:all .15s;
+    display:inline-flex; align-items:center; gap:6px;
+  }
+  .btn:active { transform:scale(.97); }
+  .btn-primary { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; width:100%; justify-content:center; }
+  .btn-danger  { background:rgba(248,81,73,.15); color:var(--danger); border:1px solid rgba(248,81,73,.3); }
+  .btn-success { background:rgba(63,185,80,.15); color:var(--accent3); border:1px solid rgba(63,185,80,.3); }
+  .btn-ghost   { background:var(--surface2); color:var(--text2); border:1px solid var(--border); }
+  .btn-sm { padding:6px 12px; font-size:12px; border-radius:6px; }
+
+  /* FORKLIFT CARD */
+  .ft-card {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); padding:14px;
+    display:flex; align-items:center; gap:14px; margin-bottom:10px;
+    transition:all .2s;
+  }
+  .ft-avatar {
+    width:48px; height:48px;
+    background:linear-gradient(135deg,var(--surface2),var(--border));
+    border-radius:12px; display:flex; align-items:center; justify-content:center;
+    font-size:24px; flex-shrink:0; position:relative;
+  }
+  .ft-dot { position:absolute; bottom:2px; left:2px; width:10px; height:10px; border-radius:50%; border:2px solid var(--surface); }
+  .ft-dot.free { background:var(--accent3); }
+  .ft-dot.busy { background:var(--warn); animation:pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  .ft-info { flex:1; }
+  .ft-name { font-size:14px; font-weight:700; }
+  .ft-task { font-size:12px; color:var(--text2); margin-top:3px; }
+
+  /* REQUEST ITEM */
+  .req-item {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius); padding:14px; margin-bottom:10px;
+  }
+  .req-item.p-critical-item { border-right:3px solid var(--danger); }
+  .req-item.p-high-item     { border-right:3px solid var(--accent); }
+  .req-item.p-medium-item   { border-right:3px solid var(--warn); }
+  .req-item.p-low-item      { border-right:3px solid var(--accent3); }
+  .req-header { display:flex; align-items:flex-start; justify-content:space-between; gap:8px; margin-bottom:8px; }
+  .req-title  { font-size:14px; font-weight:600; flex:1; }
+  .req-meta   { font-size:11px; color:var(--text3); margin-top:5px; display:flex; flex-wrap:wrap; gap:6px; align-items:center; }
+  .req-actions { display:flex; gap:6px; margin-top:10px; }
+
+  /* TIMER */
+  .timer-display {
+    background:var(--surface2); border:1px solid var(--border);
+    border-radius:var(--radius); padding:14px; text-align:center; margin-bottom:12px;
+  }
+  .timer-num { font-size:38px; font-weight:800; color:var(--accent); font-variant-numeric:tabular-nums; letter-spacing:2px; }
+  .timer-label { font-size:11px; color:var(--text3); margin-top:4px; }
+
+  /* HISTORY */
+  .hist-item { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin-bottom:10px; }
+  .hist-row  { display:flex; justify-content:space-between; align-items:center; }
+  .hist-title { font-size:14px; font-weight:600; flex:1; margin-left:8px; }
+  .hist-detail { font-size:11px; color:var(--text3); margin-top:7px; display:flex; flex-wrap:wrap; gap:8px; }
+
+  /* EMPTY */
+  .empty { text-align:center; padding:48px 20px; color:var(--text3); }
+  .empty-icon { font-size:44px; margin-bottom:12px; opacity:.5; }
+  .empty-text { font-size:14px; }
+
+  /* REPORT ACTIVE */
+  .report-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin-bottom:10px; }
+  .report-active { border-color:var(--accent3); background:rgba(63,185,80,.04); }
+
+  /* FAB */
+  .fab {
+    position:fixed; bottom:calc(20px + var(--safe-bot)); left:50%; transform:translateX(-50%);
+    background:linear-gradient(135deg,var(--accent),var(--accent2));
+    border:none; border-radius:50px; padding:14px 26px;
+    color:#fff; font-family:'Vazirmatn',sans-serif; font-size:14px; font-weight:700;
+    cursor:pointer; display:flex; align-items:center; gap:8px;
+    box-shadow:0 4px 20px rgba(247,129,102,.4); transition:all .2s; z-index:200;
+  }
+  .fab:active { transform:translateX(-50%) scale(.96); }
+  .fab.hidden { display:none; }
+
+  /* MODAL */
+  .modal-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,.78);
+    z-index:300; display:none; align-items:flex-end; justify-content:center;
+  }
+  .modal-overlay.open { display:flex; }
+  .modal {
+    background:var(--surface); border:1px solid var(--border);
+    border-radius:var(--radius) var(--radius) 0 0;
+    padding:20px; padding-bottom:calc(20px + var(--safe-bot));
+    width:100%; max-width:480px; max-height:92dvh;
+    overflow-y:auto; animation:slideUp .28s ease;
+  }
+  @keyframes slideUp { from{transform:translateY(100%)} to{transform:translateY(0)} }
+  .modal-handle { width:40px; height:4px; background:var(--border); border-radius:2px; margin:0 auto 18px; }
+  .modal-title  { font-size:16px; font-weight:700; margin-bottom:16px; }
+
+  .row { display:flex; gap:8px; }
+  .col { flex:1; }
+  .divider { height:1px; background:var(--border); margin:14px 0; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div class="logo-icon">🏗️</div>
+    <div>
+      <div class="header-title">مدیریت لیفتراک</div>
+      <div class="header-sub" id="currentDateTime">در حال بارگذاری...</div>
+    </div>
+  </div>
+  <div class="header-stats">
+    <div class="stat-pill"><div class="stat-dot" style="background:var(--accent3)"></div><span id="freeCount">۰</span> آزاد</div>
+    <div class="stat-pill"><div class="stat-dot" style="background:var(--warn)"></div><span id="busyCount">۰</span> مشغول</div>
+    <div class="stat-pill"><div class="stat-dot" style="background:var(--accent)"></div><span id="pendingCount">۰</span> درخواست</div>
+  </div>
+</div>
+
+<!-- INSTALL BANNER -->
+<div id="installBanner">
+  <span>📲 برای نصب روی اندروید:</span>
+  <button onclick="installPWA()">نصب اپ</button>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="showPage('forklifts',this)">
+    <span class="nav-icon">🏗️</span>لیفتراک‌ها
+  </button>
+  <button class="nav-btn" onclick="showPage('requests',this)">
+    <span class="nav-icon">📋</span>درخواست‌ها
+  </button>
+  <button class="nav-btn" onclick="showPage('report',this)">
+    <span class="nav-icon">⏱️</span>گزارش کار
+  </button>
+  <button class="nav-btn" onclick="showPage('history',this)">
+    <span class="nav-icon">📁</span>تاریخچه
+  </button>
+</nav>
+
+<!-- SCROLL AREA -->
+<div class="scroll-area">
+
+  <!-- PAGE: FORKLIFTS -->
+  <div class="page active" id="page-forklifts">
+    <div class="sec-title">لیفتراک‌های آزاد</div>
+    <div id="freeList"></div>
+    <div class="divider"></div>
+    <div class="sec-title">لیفتراک‌های مشغول</div>
+    <div id="busyList"></div>
+  </div>
+
+  <!-- PAGE: REQUESTS -->
+  <div class="page" id="page-requests">
+    <div id="reqList"></div>
+  </div>
+
+  <!-- PAGE: REPORT -->
+  <div class="page" id="page-report">
+    <div class="sec-title">ثبت گزارش کار</div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="form-group">
+        <label class="form-label">انتخاب لیفتراک</label>
+        <select class="form-select" id="repForklift"></select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">درخواست مرتبط (اختیاری)</label>
+        <select class="form-select" id="repRequest">
+          <option value="">— بدون درخواست —</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">توضیحات کار</label>
+        <textarea class="form-textarea" id="repDesc" placeholder="شرح عملیات..."></textarea>
+      </div>
+      <button class="btn btn-primary" onclick="startReport()">▶ شروع کار</button>
+    </div>
+    <div class="sec-title">کارهای در جریان</div>
+    <div id="activeReports"></div>
+  </div>
+
+  <!-- PAGE: HISTORY -->
+  <div class="page" id="page-history">
+    <div class="row" style="margin-bottom:14px">
+      <select class="form-select col" id="histFilter" onchange="renderHistory()">
+        <option value="">همه لیفتراک‌ها</option>
+      </select>
+      <select class="form-select col" id="histSort" onchange="renderHistory()">
+        <option value="newest">جدیدترین</option>
+        <option value="oldest">قدیمی‌ترین</option>
+        <option value="duration">مدت زمان</option>
+      </select>
+    </div>
+    <div id="histList"></div>
+  </div>
+
+</div><!-- /scroll-area -->
+
+<!-- FAB -->
+<button class="fab" id="fab" onclick="openFab()">
+  <span>➕</span><span id="fabLabel">درخواست جدید</span>
+</button>
+
+<!-- MODAL: NEW REQUEST -->
+<div class="modal-overlay" id="modalReq">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">➕ درخواست جدید</div>
+    <div class="form-group">
+      <label class="form-label">عنوان کار</label>
+      <input class="form-input" id="reqTitle" placeholder="مثال: جابه‌جایی کویل سالن A">
+    </div>
+    <div class="form-group">
+      <label class="form-label">محل انجام کار</label>
+      <input class="form-input" id="reqLoc" placeholder="مثال: سالن رولینگ – خط ۲">
+    </div>
+    <div class="form-group">
+      <label class="form-label">درجه اهمیت</label>
+      <select class="form-select" id="reqPriority">
+        <option value="critical">🔴 بحرانی – توقف تولید</option>
+        <option value="high">🟠 زیاد – عملیات حیاتی</option>
+        <option value="medium" selected>🟡 متوسط – عملیات معمول</option>
+        <option value="low">🟢 کم – غیر فوری</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">توضیحات</label>
+      <textarea class="form-textarea" id="reqDesc" placeholder="جزئیات بیشتر..."></textarea>
+    </div>
+    <div class="form-group">
+      <label class="form-label">درخواست دهنده</label>
+      <input class="form-input" id="reqRequester" placeholder="نام واحد یا شخص">
+    </div>
+    <div class="row">
+      <button class="btn btn-ghost col" onclick="closeModal('modalReq')">انصراف</button>
+      <button class="btn btn-primary col" onclick="addRequest()">ثبت درخواست</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: ADD FORKLIFT -->
+<div class="modal-overlay" id="modalFt">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🏗️ افزودن لیفتراک</div>
+    <div class="form-group">
+      <label class="form-label">شناسه / نام لیفتراک</label>
+      <input class="form-input" id="ftName" placeholder="مثال: LF-01">
+    </div>
+    <div class="form-group">
+      <label class="form-label">اپراتور</label>
+      <input class="form-input" id="ftOperator" placeholder="نام اپراتور">
+    </div>
+    <div class="row">
+      <button class="btn btn-ghost col" onclick="closeModal('modalFt')">انصراف</button>
+      <button class="btn btn-primary col" onclick="addForklift()">ثبت</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── DATA ── */
+let forklifts = JSON.parse(localStorage.getItem('fl_forklifts') || '[]');
+let requests  = JSON.parse(localStorage.getItem('fl_requests')  || '[]');
+let reports   = JSON.parse(localStorage.getItem('fl_reports')   || '[]');
+let history   = JSON.parse(localStorage.getItem('fl_history')   || '[]');
+let activePage = 'forklifts';
+
+if (!forklifts.length) {
+  forklifts = [
+    { id:'ft1', name:'LF-01', operator:'علی رضایی',  status:'free', currentTask:null },
+    { id:'ft2', name:'LF-02', operator:'محمد کریمی', status:'free', currentTask:null },
+    { id:'ft3', name:'LF-03', operator:'حسین نجفی',  status:'busy', currentTask:'جابه‌جایی کویل' },
+  ];
+  save();
+}
+
+function save() {
+  localStorage.setItem('fl_forklifts', JSON.stringify(forklifts));
+  localStorage.setItem('fl_requests',  JSON.stringify(requests));
+  localStorage.setItem('fl_reports',   JSON.stringify(reports));
+  localStorage.setItem('fl_history',   JSON.stringify(history));
+}
+
+/* ── UTILS ── */
+const pLabel = { critical:'بحرانی', high:'زیاد', medium:'متوسط', low:'کم' };
+const pClass = { critical:'p-critical', high:'p-high', medium:'p-medium', low:'p-low' };
+const pIcon  = { critical:'🔴', high:'🟠', medium:'🟡', low:'🟢' };
+const pOrder = { critical:0, high:1, medium:2, low:3 };
+
+function toF(n) { return String(n).replace(/\d/g, d=>'۰۱۲۳۴۵۶۷۸۹'[d]); }
+
+function farsiDate() {
+  try {
+    return new Intl.DateTimeFormat('fa-IR',{weekday:'long',year:'numeric',month:'long',day:'numeric'}).format(new Date());
+  } catch { return new Date().toLocaleDateString('fa-IR'); }
+}
+
+function farsiTime(ts) {
+  if (!ts) return '—';
+  const d = new Date(ts);
+  return toF(String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0'));
+}
+
+function durStr(ms) {
+  const s = Math.floor(ms/1000), h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sec=s%60;
+  if (h) return toF(h)+'ساعت '+toF(m)+'دقیقه';
+  if (m) return toF(m)+'دقیقه '+toF(sec)+'ثانیه';
+  return toF(sec)+'ثانیه';
+}
+
+function uid() { return '_'+Math.random().toString(36).slice(2,9); }
+
+/* ── DATETIME ── */
+document.getElementById('currentDateTime').textContent = farsiDate();
+setInterval(()=>{ document.getElementById('currentDateTime').textContent = farsiDate(); }, 60000);
+
+/* ── STATS ── */
+function updateStats() {
+  document.getElementById('freeCount').textContent    = toF(forklifts.filter(f=>f.status==='free').length);
+  document.getElementById('busyCount').textContent    = toF(forklifts.filter(f=>f.status==='busy').length);
+  document.getElementById('pendingCount').textContent = toF(requests.filter(r=>r.status==='waiting').length);
+}
+
+/* ── NAV ── */
+function showPage(id, btn) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  activePage = id;
+  const fab = document.getElementById('fab');
+  if (id==='report'||id==='history') { fab.classList.add('hidden'); }
+  else {
+    fab.classList.remove('hidden');
+    document.getElementById('fabLabel').textContent = id==='forklifts' ? 'لیفتراک جدید' : 'درخواست جدید';
+  }
+  renderAll();
+}
+
+function openFab() { openModal(activePage==='forklifts'?'modalFt':'modalReq'); }
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o=>
+  o.addEventListener('click',e=>{ if(e.target===o) o.classList.remove('open'); })
+);
+
+/* ── FORKLIFTS ── */
+function renderForklifts() {
+  const free = forklifts.filter(f=>f.status==='free');
+  const busy = forklifts.filter(f=>f.status==='busy');
+  document.getElementById('freeList').innerHTML = free.length ? free.map(ftCard).join('') :
+    `<div class="empty"><div class="empty-icon">✅</div><div class="empty-text">هیچ لیفتراکی آزاد نیست</div></div>`;
+  document.getElementById('busyList').innerHTML = busy.length ? busy.map(ftCard).join('') :
+    `<div class="empty"><div class="empty-icon">💤</div><div class="empty-text">همه لیفتراک‌ها آزادند</div></div>`;
+
+  const rf = document.getElementById('repForklift');
+  const prev = rf.value;
+  rf.innerHTML = forklifts.map(f=>`<option value="${f.id}">${f.name} – ${f.operator} (${f.status==='free'?'آزاد':'مشغول'})</option>`).join('');
+  if(prev) rf.value=prev;
+
+  const hf = document.getElementById('histFilter');
+  const hprev = hf.value;
+  hf.innerHTML = `<option value="">همه لیفتراک‌ها</option>` + forklifts.map(f=>`<option value="${f.id}">${f.name}</option>`).join('');
+  if(hprev) hf.value=hprev;
+}
+
+function ftCard(f) {
+  return `<div class="ft-card">
+    <div class="ft-avatar">🏗️<div class="ft-dot ${f.status==='free'?'free':'busy'}"></div></div>
+    <div class="ft-info">
+      <div class="ft-name">${f.name}</div>
+      <div class="ft-task">👤 ${f.operator}</div>
+      <div class="ft-task" style="margin-top:2px">${f.currentTask?'در حال: '+f.currentTask:'منتظر کار'}</div>
+    </div>
+    <span class="status-badge ${f.status==='free'?'s-active':'s-waiting'}">${f.status==='free'?'آزاد':'مشغول'}</span>
+  </div>`;
+}
+
+function addForklift() {
+  const name = document.getElementById('ftName').value.trim();
+  const op   = document.getElementById('ftOperator').value.trim();
+  if (!name) { alert('نام لیفتراک را وارد کنید'); return; }
+  forklifts.push({ id:uid(), name, operator:op||'نامشخص', status:'free', currentTask:null });
+  save();
+  document.getElementById('ftName').value='';
+  document.getElementById('ftOperator').value='';
+  closeModal('modalFt');
+  renderAll();
+}
+
+/* ── REQUESTS ── */
+function renderRequests() {
+  const sorted = [...requests].sort((a,b)=>{
+    if(pOrder[a.priority]!==pOrder[b.priority]) return pOrder[a.priority]-pOrder[b.priority];
+    return b.createdAt-a.createdAt;
+  });
+
+  const rr = document.getElementById('repRequest');
+  const prev = rr.value;
+  rr.innerHTML = `<option value="">— بدون درخواست —</option>` +
+    requests.filter(r=>r.status==='waiting').map(r=>`<option value="${r.id}">${r.title} (${pLabel[r.priority]})</option>`).join('');
+  if(prev) rr.value=prev;
+
+  const el = document.getElementById('reqList');
+  if(!sorted.length) {
+    el.innerHTML=`<div class="empty"><div class="empty-icon">📋</div><div class="empty-text">هیچ درخواستی ثبت نشده</div></div>`;
+    return;
+  }
+  el.innerHTML = sorted.map(r=>`<div class="req-item p-${r.priority}-item" ${r.status==='done'?'style="opacity:.6"':''}>
+    <div class="req-header">
+      <div>
+        <div class="req-title">${r.title}</div>
+        <div class="req-meta">
+          <span class="priority ${pClass[r.priority]}">${pIcon[r.priority]} ${pLabel[r.priority]}</span>
+          ${r.status==='waiting'?'<span class="status-badge s-waiting">در انتظار</span>':''}
+          ${r.status==='active' ?'<span class="status-badge s-active">در جریان</span>':''}
+          ${r.status==='done'  ?'<span class="status-badge s-done">انجام شد</span>':''}
+        </div>
+      </div>
+    </div>
+    ${r.location?`<div style="font-size:12px;color:var(--text2);margin-bottom:4px">📍 ${r.location}</div>`:''}
+    ${r.description?`<div style="font-size:12px;color:var(--text3);margin-bottom:6px">${r.description}</div>`:''}
+    ${r.requester?`<div style="font-size:11px;color:var(--text3)">👤 ${r.requester}</div>`:''}
+    <div style="font-size:11px;color:var(--text3);margin-top:5px">🕐 ${farsiTime(r.createdAt)}</div>
+    ${r.status!=='done'?`<div class="req-actions"><button class="btn btn-danger btn-sm" onclick="deleteRequest('${r.id}')">🗑 حذف</button></div>`:''}
+  </div>`).join('');
+}
+
+function addRequest() {
+  const title    = document.getElementById('reqTitle').value.trim();
+  const loc      = document.getElementById('reqLoc').value.trim();
+  const priority = document.getElementById('reqPriority').value;
+  const desc     = document.getElementById('reqDesc').value.trim();
+  const req      = document.getElementById('reqRequester').value.trim();
+  if(!title) { alert('عنوان کار را وارد کنید'); return; }
+  requests.push({ id:uid(), title, location:loc, priority, description:desc, requester:req, status:'waiting', createdAt:Date.now() });
+  save();
+  ['reqTitle','reqLoc','reqDesc','reqRequester'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('reqPriority').value='medium';
+  closeModal('modalReq');
+  renderAll();
+}
+
+function deleteRequest(id) {
+  if(!confirm('این درخواست حذف شود؟')) return;
+  requests = requests.filter(r=>r.id!==id);
+  save(); renderAll();
+}
+
+/* ── REPORTS ── */
+let timerIntervals = {};
+
+function renderReports() {
+  const active = reports.filter(r=>!r.endTime);
+  const el = document.getElementById('activeReports');
+  if(!active.length) {
+    el.innerHTML=`<div class="empty"><div class="empty-icon">⏸️</div><div class="empty-text">هیچ کاری در جریان نیست</div></div>`;
+    return;
+  }
+  el.innerHTML = active.map(r=>{
+    const ft  = forklifts.find(f=>f.id===r.forkliftId);
+    const req = requests.find(q=>q.id===r.requestId);
+    return `<div class="report-card report-active">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:14px;font-weight:700">${ft?ft.name:'?'} – ${ft?ft.operator:'?'}</div>
+        <span class="status-badge s-active">⏱ در جریان</span>
+      </div>
+      ${req?`<div style="font-size:12px;color:var(--text2);margin-bottom:4px">📋 ${req.title}</div>`:''}
+      ${r.description?`<div style="font-size:12px;color:var(--text3);margin-bottom:8px">${r.description}</div>`:''}
+      <div class="timer-display">
+        <div class="timer-num" id="tmr-${r.id}">۰۰:۰۰:۰۰</div>
+        <div class="timer-label">از ساعت ${farsiTime(r.startTime)}</div>
+      </div>
+      <button class="btn btn-success" style="width:100%" onclick="endReport('${r.id}')">⏹ پایان کار</button>
+    </div>`;
+  }).join('');
+  active.forEach(r=>tickTimer(r.id, r.startTime));
+}
+
+function tickTimer(id, startTime) {
+  if(timerIntervals[id]) clearInterval(timerIntervals[id]);
+  function upd() {
+    const el = document.getElementById('tmr-'+id);
+    if(!el) { clearInterval(timerIntervals[id]); return; }
+    const diff=Date.now()-startTime;
+    const h=Math.floor(diff/3600000), m=Math.floor((diff%3600000)/60000), s=Math.floor((diff%60000)/1000);
+    el.textContent=toF(String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0'));
+  }
+  upd(); timerIntervals[id]=setInterval(upd,1000);
+}
+
+function startReport() {
+  const ftId  = document.getElementById('repForklift').value;
+  const reqId = document.getElementById('repRequest').value;
+  const desc  = document.getElementById('repDesc').value.trim();
+  if(!ftId) { alert('لیفتراک را انتخاب کنید'); return; }
+  const ft = forklifts.find(f=>f.id===ftId);
+  if(!ft) return;
+  const rep = { id:uid(), forkliftId:ftId, requestId:reqId||null, description:desc, startTime:Date.now(), endTime:null };
+  reports.push(rep);
+  ft.status='busy';
+  ft.currentTask=desc||(requests.find(r=>r.id===reqId)?.title)||'در حال کار';
+  if(reqId) { const r=requests.find(r=>r.id===reqId); if(r) r.status='active'; }
+  save();
+  document.getElementById('repDesc').value='';
+  renderAll();
+}
+
+function endReport(id) {
+  const rep = reports.find(r=>r.id===id);
+  if(!rep) return;
+  rep.endTime=Date.now();
+  const duration=rep.endTime-rep.startTime;
+  const ft=forklifts.find(f=>f.id===rep.forkliftId);
+  if(ft) { ft.status='free'; ft.currentTask=null; }
+  if(rep.requestId) { const r=requests.find(r=>r.id===rep.requestId); if(r) r.status='done'; }
+  const req=requests.find(r=>r.id===rep.requestId);
+  history.unshift({
+    id:uid(), forkliftId:rep.forkliftId, forkliftName:ft?.name||'?', operator:ft?.operator||'?',
+    requestTitle:req?.title||rep.description||'کار بدون عنوان',
+    priority:req?.priority||null, description:rep.description,
+    startTime:rep.startTime, endTime:rep.endTime, duration
+  });
+  if(timerIntervals[id]) clearInterval(timerIntervals[id]);
+  save(); renderAll();
+}
+
+/* ── HISTORY ── */
+function renderHistory() {
+  const filter=document.getElementById('histFilter').value;
+  const sort=document.getElementById('histSort').value;
+  let items=[...history];
+  if(filter) items=items.filter(h=>h.forkliftId===filter);
+  if(sort==='oldest') items.sort((a,b)=>a.startTime-b.startTime);
+  else if(sort==='duration') items.sort((a,b)=>b.duration-a.duration);
+  else items.sort((a,b)=>b.startTime-a.startTime);
+  const el=document.getElementById('histList');
+  if(!items.length) {
+    el.innerHTML=`<div class="empty"><div class="empty-icon">📁</div><div class="empty-text">تاریخچه‌ای وجود ندارد</div></div>`;
+    return;
+  }
+  el.innerHTML=items.map(h=>`<div class="hist-item">
+    <div class="hist-row">
+      <div class="hist-title">${h.requestTitle}</div>
+      ${h.priority?`<span class="priority ${pClass[h.priority]}">${pIcon[h.priority]}</span>`:''}
+    </div>
+    <div class="hist-detail">
+      <span>🏗️ ${h.forkliftName}</span>
+      <span>👤 ${h.operator}</span>
+      <span>▶ ${farsiTime(h.startTime)}</span>
+      <span>⏹ ${farsiTime(h.endTime)}</span>
+      <span>⏱ ${durStr(h.duration)}</span>
+    </div>
+    ${h.description?`<div style="font-size:11px;color:var(--text3);margin-top:7px;border-top:1px solid var(--border);padding-top:7px">${h.description}</div>`:''}
+  </div>`).join('');
+}
+
+/* ── RENDER ALL ── */
+function renderAll() {
+  renderForklifts(); renderRequests(); renderReports(); renderHistory(); updateStats();
+}
+renderAll();
+
+/* ── PWA INSTALL ── */
+let deferredPrompt=null;
+window.addEventListener('beforeinstallprompt', e=>{
+  e.preventDefault();
+  deferredPrompt=e;
+  document.getElementById('installBanner').style.display='flex';
+});
+window.addEventListener('appinstalled', ()=>{
+  document.getElementById('installBanner').style.display='none';
+  deferredPrompt=null;
+});
+function installPWA() {
+  if(!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(()=>{ deferredPrompt=null; });
+}
+
+/* ── SERVICE WORKER ── */
+if('serviceWorker' in navigator) {
+  window.addEventListener('load', ()=>{
+    navigator.serviceWorker.register('./sw.js').catch(err=>console.warn('SW:', err));
+  });
+}
+</script>
+</body>
+</html>
